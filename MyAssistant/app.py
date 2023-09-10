@@ -1,20 +1,11 @@
-
-import os
-os.environ["OPENAI_API_KEY"]="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"
-
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
+import  streamlit as st
 
+pdfreader= PdfReader('CleanCode.pdf')
 
-from typing_extensions import Concatenate
-
-pdfreader= PdfReader('cleanCode.pdf')
-
-
-from typing_extensions import Concatenate
-# read text from pdf
 raw_text = ''
 for i, page in enumerate(pdfreader.pages):
     content = page.extract_text()
@@ -28,23 +19,32 @@ for i, page in enumerate(pdfreader.pages):
     length_function = len,
 )
 texts = text_splitter.split_text(raw_text)
-print(texts)
+# print(texts)
 embeddings = OpenAIEmbeddings()
 document_search = FAISS.from_texts(texts, embeddings)
-
-print(document_search)
 
 
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 
-chain = load_qa_chain(OpenAI(), chain_type="stuff",verbose=True)
+chain = load_qa_chain(OpenAI(), chain_type="stuff")
+def get_Input(input):
+    input_text =st.text_input('You', key=input)
+    return input_text
 
 
 
-query = "what is a laptop "
-docs = document_search.similarity_search(query)
-answer =chain.run(input_documents=docs, question=query)
+def getResponse(query):
+    docs = document_search.similarity_search(query)
+    answer =chain.run(input_documents=docs, question=query)
+    return answer
+query = get_Input("input")
+response= getResponse(query)
+submit = st.button("Generate")
 
-print(answer)
+if submit:
+    st.subheader("Jonathan AI")
+    st.write(response)
+
+
 
